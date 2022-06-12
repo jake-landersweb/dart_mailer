@@ -40,5 +40,7 @@ void main(List<String> args) async {
 
   // run a function to send the emails every minute
   Timer.periodic(
-      Duration(seconds: 30), (Timer t) => routes.sendAllUnsentEmails());
+    Duration(seconds: 60),
+    (Timer t) => routes.sendAllUnsentEmails(),
+  );
 }
