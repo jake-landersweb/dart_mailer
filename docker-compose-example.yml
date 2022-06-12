@@ -1,0 +1,37 @@
+services:
+  dart_mailer_db:
+    container_name: dart_mailer_db
+    image: mariadb
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_USER:
+      MYSQL_USER_PASSWORD:
+      MYSQL_ROOT_PASSWORD:
+    volumes:
+      - ./dart_mailer/bin/sql/schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql:/var/lib/mysql
+
+  dart_mailer_app:
+    container_name: dart_mailer_app
+    build:
+      context: ./dart_mailer/
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    environment:
+      - MYSQLHOST=dart_mailer_db
+      - MYSQLPORT=3306
+      - MYSQLUSER=
+      - MYSQLPASS=
+      - MYSQLDB=
+      - MAILTABLE=
+      - HOSTNAME=0.0.0.0
+      - HOSTPORT=8080
+      - APIKEY=
+      - LOGGERPATH=logs/
+      - ENCRYPTKEY=
+    volumes:
+      - ./logs/:/logs/
+    links:
+      - dart_mailer_db

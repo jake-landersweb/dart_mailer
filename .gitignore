@@ -1,0 +1,4 @@
+mysql/
+docker-compose.yml
+logs/
+dart_mailer/bin/sql/schema.sql
