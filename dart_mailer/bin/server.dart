@@ -39,8 +39,8 @@ void main(List<String> args) async {
   logger.log("Sever listening on port ${server.port}");
 
   // run a function to send the emails every minute
-  Timer.periodic(
-    Duration(seconds: 60),
-    (Timer t) => routes.sendAllUnsentEmails(),
-  );
+  while (true) {
+    routes.sendAllUnsentEmails();
+    await Future.delayed(const Duration(minutes: 1));
+  }
 }
