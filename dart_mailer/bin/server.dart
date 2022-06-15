@@ -40,7 +40,11 @@ void main(List<String> args) async {
 
   // run a function to send the emails every minute
   while (true) {
-    routes.sendAllUnsentEmails();
+    try {
+      routes.sendAllUnsentEmails();
+    } catch (error, stacktrace) {
+      logger.error(error.toString(), stacktrace: stacktrace.toString());
+    }
     await Future.delayed(const Duration(minutes: 1));
   }
 }
