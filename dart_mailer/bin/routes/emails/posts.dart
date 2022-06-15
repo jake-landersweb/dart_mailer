@@ -142,14 +142,16 @@ Future<Response> sendEmailHandler(String id) async {
 
 Future<void> sendAllUnsentEmails() async {
   try {
-    logger.log("Running send all emails ...");
+    // logger.log("Running send all emails ...");
     var results = await sql.getAllUnsentEmails();
-    logger.log("Found ${results.rows.length} emails to send");
+    // logger.log("Found ${results.rows.length} emails to send");
     for (var i in results.rows) {
       sendEmailHandler(i.typedAssoc()['id']!);
     }
-    logger.log("Finished sending all unsent emails");
+    // logger.log("Finished sending all unsent emails");
   } catch (error, stacktrace) {
-    logger.error(error.toString(), stacktrace: stacktrace.toString());
+    // logger.error(error.toString(), stacktrace: stacktrace.toString());
+    print(error);
+    print(stacktrace);
   }
 }
