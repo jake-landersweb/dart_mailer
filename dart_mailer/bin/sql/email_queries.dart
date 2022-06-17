@@ -13,12 +13,14 @@ Future<IResultSet> dyn({
     "SELECT * FROM ${env.MAILTABLE} WHERE $column $opp :val",
     {"val": value},
   );
+  connection.close();
   return results;
 }
 
 Future<IResultSet> getEmails() async {
   MySQLConnection connection = await sql.createConnection();
   var results = await connection.execute("SELECT * FROM ${env.MAILTABLE}");
+  connection.close();
   return results;
 }
 
@@ -28,6 +30,7 @@ Future<IResultSet> getEmail({required String id}) async {
     "SELECT * FROM ${env.MAILTABLE} WHERE id = :id",
     {"id": id},
   );
+  connection.close();
   return results;
 }
 
@@ -37,6 +40,7 @@ Future<IResultSet> getEmailsSentByUser({required String email}) async {
     "SELECT * FROM ${env.MAILTABLE} WHERE username = :username",
     {"username": email},
   );
+  connection.close();
   return results;
 }
 
@@ -55,6 +59,7 @@ Future<IResultSet> getEmailsTaggedUser({required String email}) async {
     "SELECT * FROM ${env.MAILTABLE} WHERE cc LIKE :email OR bcc LIKE :email",
     {"email": email},
   );
+  connection.close();
   return results;
 }
 
@@ -81,6 +86,7 @@ Future<String> updateEmail({
       "UPDATE ${env.MAILTABLE} SET $queryString WHERE id = '$id'",
       body,
     );
+    connection.close();
     return "";
   } catch (error, stacktrace) {
     return "$error $stacktrace";
@@ -96,5 +102,6 @@ Future<IResultSet> getAllUnsentEmails() async {
       "sendDate": utils.getEpochDate(),
     },
   );
+  connection.close();
   return results;
 }

@@ -30,13 +30,13 @@ void main(List<String> args) async {
 
   // add api routes
   final handler = Pipeline()
-      // .addMiddleware(logger.middleware())
+      .addMiddleware(logger.middleware())
       .addMiddleware(auth.middleware())
       .addHandler(_router);
 
   final server = await serve(handler, env.HOSTNAME, env.HOSTPORT);
-  // logger.createFile();
-  // logger.log("Sever listening on port ${server.port}");
+  logger.createFile();
+  logger.log("Sever listening on port ${server.port}");
   print("listening on port: ${server.port}");
 
   // run a function to send the emails every minute
