@@ -54,7 +54,7 @@ Future<Response> createEmail(Request request) async {
     }
 
     await connection.execute(
-      "INSERT INTO ${env.MAILTABLE} (id, subject, body, recipient, cc, bcc, host, port, username, password, salt, created, sentStatus, sendDate) VALUES (:id, :subject, :body, :recipient, :cc, :bcc, :host, :port, :username, :password, :salt, :created, :sentStatus, :sendDate)",
+      "INSERT INTO ${env.MAILTABLE} (id, subject, body, recipient, cc, bcc, host, port, username, password, salt, created, sentStatus, sendDate, sendName) VALUES (:id, :subject, :body, :recipient, :cc, :bcc, :host, :port, :username, :password, :salt, :created, :sentStatus, :sendDate, :sendName)",
       mailObject.toMap(),
     );
 
