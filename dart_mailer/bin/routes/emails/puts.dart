@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
+import '../../data/input_body.dart';
 import '../../lib/response.dart' as response;
 import '../../lib/logger.dart' as logger;
 import '../../lib/utils.dart' as utils;
@@ -61,5 +62,31 @@ Future<Response> updateEmail(Request request) async {
     logger.error(error.toString(), stacktrace: stacktrace.toString());
     return response
         .internalError("There was an internal error updating the mail object");
+  }
+}
+
+Future<Response> getEmailsFiltered(Request request) async {
+  try {
+    final rawData = await request.readAsString();
+    final body = jsonDecode(rawData);
+
+    // convert into filter data
+    InputBody inputBody = InputBody.fromJson(body);
+
+    // check body validity
+    if (!inputBody.isValid()) {
+      return response.body("Your body did not meet the criteria");
+    }
+
+    var results = await sql.getFilteredBody(inputBody);
+
+    return response.success(
+      "Successfully found filtered emails",
+      object: results.rows.map((e) => e.typedAssoc()).toList(),
+    );
+  } catch (error, stacktrace) {
+    logger.error(error.toString(), stacktrace: stacktrace.toString());
+    return response
+        .internalError("There was an internal error getting filtered emails");
   }
 }

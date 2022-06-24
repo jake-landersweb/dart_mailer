@@ -58,6 +58,8 @@ Future<Response> createEmail(Request request) async {
       mailObject.toMap(),
     );
 
+    connection.close();
+
     return response
         .success("Successfully created mail object with id: ${mailObject.id}");
   } catch (error, stacktrace) {

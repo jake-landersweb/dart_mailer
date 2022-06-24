@@ -13,6 +13,7 @@ import 'lib/auth.dart' as auth;
 final _router = Router()
   ..post('/createEmail', routes.createEmail)
   ..get("/emails", routes.getEmails)
+  ..put("/emails", routes.getEmailsFiltered)
   ..get("/emails/<id>", routes.getEmail)
   ..put("/emails/<id>", routes.updateEmail)
   ..post("/emails/<id>", routes.sendEmail)
@@ -37,11 +38,10 @@ void main(List<String> args) async {
   final server = await serve(handler, env.HOSTNAME, env.HOSTPORT);
   logger.createFile();
   logger.log("Sever listening on port ${server.port}");
-  print("listening on port: ${server.port}");
 
   // run a function to send the emails every minute
-  while (true) {
-    routes.sendAllUnsentEmails();
-    await Future.delayed(const Duration(minutes: 1));
-  }
+  // while (true) {
+  //   routes.sendAllUnsentEmails();
+  //   await Future.delayed(const Duration(minutes: 1));
+  // }
 }
