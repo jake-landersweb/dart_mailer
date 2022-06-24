@@ -40,8 +40,8 @@ void main(List<String> args) async {
   logger.log("Sever listening on port ${server.port}");
 
   // run a function to send the emails every minute
-  // while (true) {
-  //   routes.sendAllUnsentEmails();
-  //   await Future.delayed(const Duration(minutes: 1));
-  // }
+  while (true) {
+    routes.sendAllUnsentEmails();
+    await Future.delayed(const Duration(minutes: 1));
+  }
 }
