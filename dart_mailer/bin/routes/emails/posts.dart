@@ -34,6 +34,7 @@ Future<Response> createEmail(Request request) async {
         password: body['password'],
         sendDate: body['sendDate'] ?? 0,
         sendName: body['sendName'],
+        tags: body['tags'],
       );
     } catch (error, stacktrace) {
       logger.error(error.toString(), stacktrace: stacktrace.toString());

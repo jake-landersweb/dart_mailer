@@ -19,6 +19,7 @@ class MailObject {
   late int sentStatus;
   late int sendDate;
   String? sendName;
+  String? tags;
 
   MailObject({
     required this.subject,
@@ -32,6 +33,7 @@ class MailObject {
     required String password,
     int? sendDate,
     this.sendName,
+    this.tags,
   }) {
     // compose id with date
     id = "m-${utils.getEpochDate()}-${Uuid().v4()}";
@@ -66,6 +68,7 @@ class MailObject {
     sentStatus = json['sentStatus'];
     sendDate = json['sendDate'];
     sendName = json['sendName'];
+    tags = json['tags'];
   }
 
   Map<String, dynamic> toMap() {
@@ -86,6 +89,7 @@ class MailObject {
       "sentStatus": sentStatus,
       "sendDate": sendDate,
       "sendName": sendName,
+      "tags": tags,
     };
   }
 }

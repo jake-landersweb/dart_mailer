@@ -63,7 +63,7 @@ class FilterObject {
       case "ew":
         return "$fieldName LIKE '%$value'";
       case "!=":
-        return "$fieldName != $value";
+        return "$fieldName != '$value'";
       default:
         return "ERROR";
     }
