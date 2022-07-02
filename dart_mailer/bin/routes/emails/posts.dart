@@ -47,15 +47,15 @@ Future<Response> createEmail(Request request) async {
     MySQLConnection connection = await mysql.createConnection();
 
     // make sure this id does not exist
-    var results = await connection.execute(
-        "SELECT * FROM ${env.MAILTABLE} WHERE id = \"${mailObject.id}\"");
-    if (results.numOfRows > 0) {
-      logger.error("Duplicate records found with id value in createMailObject");
-      return response.conflict("id");
-    }
+    // var results = await connection.execute(
+    //     "SELECT * FROM ${env.MAILTABLE} WHERE id = \"${mailObject.id}\"");
+    // if (results.numOfRows > 0) {
+    //   logger.error("Duplicate records found with id value in createMailObject");
+    //   return response.conflict("id");
+    // }
 
     await connection.execute(
-      "INSERT INTO ${env.MAILTABLE} (id, subject, body, recipient, cc, bcc, host, port, username, password, salt, created, sentStatus, sendDate, sendName) VALUES (:id, :subject, :body, :recipient, :cc, :bcc, :host, :port, :username, :password, :salt, :created, :sentStatus, :sendDate, :sendName)",
+      "INSERT INTO ${env.MAILTABLE} (id, subject, body, recipient, cc, bcc, host, port, username, password, salt, created, sentStatus, sendDate, sendName, tags) VALUES (:id, :subject, :body, :recipient, :cc, :bcc, :host, :port, :username, :password, :salt, :created, :sentStatus, :sendDate, :sendName, :tags)",
       mailObject.toMap(),
     );
 

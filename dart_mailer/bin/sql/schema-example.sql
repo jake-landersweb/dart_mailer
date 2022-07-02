@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS tbl(
     sentStatus INT NOT NULL DEFAULT 0,
     sendDate BIGINT,
     salt MEDIUMTEXT NOT NULL,
-    sendName VARCHAR(255)
+    sendName VARCHAR(255),
+    tags MEDIUMTEXT,
 ) ENGINE=INNODB;
 
 GRANT ALL PRIVILEGES ON mailer.* TO 'user'@'%' WITH GRANT OPTION;
