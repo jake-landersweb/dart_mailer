@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'data/mail_object.dart';
 import 'lib/envs.dart' as env;
 import 'routes/root.dart' as routes;
 import 'lib/utils.dart' as utils;
@@ -69,32 +68,7 @@ void main(List<String> args) async {
   while (true) {
     var response = await routes.sendAllUnsentEmails();
     if (!response) {
-      logger.log("SENDING ALERT EMAIL");
-      // if there was an error connecting to the database, make sure to catch it and send an alert
-      MailObject mailObject = MailObject(
-        subject: "MAILER ERROR",
-        body: """
-              <div>
-                <h3>There was an issue sending the emails.</h3>
-                <p>Check the server immediately for logs on what went wrong</h3>
-              </div>
-            """,
-        recipient: [
-          'jakerlanders@gmail.com',
-          "kevin@landersweb.com",
-          'jake@landersweb.com'
-        ],
-        cc: [],
-        bcc: [],
-        host: "mailen2.cloudsector.net",
-        port: 587,
-        username: "success@crosschecksports.com",
-        password: "us8EweS*9",
-        sendDate: 0,
-        sendName: "Dart Mailer",
-        tags: "admin,error",
-      );
-      await routes.emailHandler(mailObject);
+      await routes.sendAltertEmail();
     }
     await Future.delayed(const Duration(minutes: 1));
   }

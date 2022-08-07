@@ -85,17 +85,24 @@ Future<Response> sendEmail(Request request) async {
 }
 
 Future<Response> sendEmailHandler(String id) async {
-  final results = await sql.getEmail(id: id);
+  try {
+    final results = await sql.getEmail(id: id);
 
-  if (results.rows.isEmpty) {
-    return response.notFound("Email with id $id not found");
+    if (results.rows.isEmpty) {
+      return response.notFound("Email with id $id not found");
+    }
+
+    MailObject mailObject =
+        MailObject.fromJson(results.rows.toList()[0].typedAssoc());
+
+    final resp = await emailHandler(mailObject);
+    return resp;
+  } catch (error, stacktrace) {
+    logger.error("ERROR IN 'sendEmailHandler()' = $error");
+    logger.error("STACKTRACE IN 'sendEmailHandler()' = $stacktrace");
+    await sendAltertEmail();
+    return response.internalError("There was an issue sending the email");
   }
-
-  MailObject mailObject =
-      MailObject.fromJson(results.rows.toList()[0].typedAssoc());
-
-  final resp = await emailHandler(mailObject);
-  return resp;
 }
 
 Future<Response> emailHandler(MailObject mailObject) async {
@@ -159,9 +166,39 @@ Future<bool> sendAllUnsentEmails() async {
     }
     return true;
   } catch (error, stacktrace) {
-    logger.error(error.toString(), stacktrace: stacktrace.toString());
-    print("ERROR = $error");
-    print("STACKTRACE = $stacktrace");
+    logger.error("ERROR IN 'sendAllUnsentEmails()' = $error");
+    logger.error("STACKTRACE IN 'sendAllUnsentEmails()' = $stacktrace");
+    await sendAltertEmail();
     return false;
+  }
+}
+
+Future<void> sendAltertEmail() async {
+  try {
+    logger.log("SENDING ALERT EMAIL");
+    // if there was an error connecting to the database, make sure to catch it and send an alert
+    MailObject mailObject = MailObject(
+      subject: "MAILER ERROR",
+      body: """
+              <div>
+                <h3>There was an issue sending the emails.</h3>
+                <p>Check the server immediately for logs on what went wrong</p>
+              </div>
+            """,
+      recipient: ['jakerlanders@gmail.com'],
+      cc: [],
+      bcc: [],
+      host: "mailen2.cloudsector.net",
+      port: 587,
+      username: "success@crosschecksports.com",
+      password: "us8EweS*9",
+      sendDate: 0,
+      sendName: "Dart Mailer",
+      tags: "admin,error",
+    );
+    await emailHandler(mailObject);
+  } catch (error, stacktrace) {
+    logger.error("ERROR IN 'sendAltertEmail()' = $error");
+    logger.error("STACKTRACE IN 'sendAltertEmail()' = $stacktrace");
   }
 }
