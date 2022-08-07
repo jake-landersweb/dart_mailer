@@ -77,9 +77,6 @@ Future<String> updateEmail({
       }
     }
 
-    print(queryString);
-    print(body);
-
     MySQLConnection connection = await sql.createConnection();
     await connection.execute(
       "UPDATE ${env.MAILTABLE} SET $queryString WHERE id = '$id'",
@@ -135,8 +132,6 @@ Future<IResultSet> getFilteredBody(InputBody body) async {
       }
     }
   }
-  print("selects: $selects");
-  print("filters: $filters");
   MySQLConnection connection = await sql.createConnection();
   var results = await connection.execute(
     "SELECT $selects FROM ${env.MAILTABLE} $filters",

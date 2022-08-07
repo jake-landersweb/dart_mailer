@@ -31,6 +31,7 @@ services:
       - APIKEY=
       - LOGGERPATH=logs/
       - ENCRYPTKEY=
+      - ISSECURE=false
     volumes:
       - ./logs/:/logs/
     links:

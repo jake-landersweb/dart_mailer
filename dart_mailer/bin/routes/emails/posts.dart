@@ -94,6 +94,11 @@ Future<Response> sendEmailHandler(String id) async {
   MailObject mailObject =
       MailObject.fromJson(results.rows.toList()[0].typedAssoc());
 
+  final resp = await emailHandler(mailObject);
+  return resp;
+}
+
+Future<Response> emailHandler(MailObject mailObject) async {
   final smtpServer = SmtpServer(
     mailObject.host,
     port: mailObject.port,
@@ -124,7 +129,7 @@ Future<Response> sendEmailHandler(String id) async {
   try {
     await send(message, smtpServer);
     // update the mailobject to respect send
-    String updateResp = await sql.updateEmail(id: id, body: {
+    String updateResp = await sql.updateEmail(id: mailObject.id, body: {
       "sentDate": utils.getEpochDate(),
       "sentStatus": 1,
     });
@@ -136,25 +141,27 @@ Future<Response> sendEmailHandler(String id) async {
     }
   } on MailerException catch (e) {
     // update the mailobject if it failed to send
-    await sql.updateEmail(id: id, body: {
+    await sql.updateEmail(id: mailObject.id, body: {
       "sentStatus": -1,
     });
     return response.badGateway(e.message);
   }
 }
 
-Future<void> sendAllUnsentEmails() async {
+Future<bool> sendAllUnsentEmails() async {
   try {
-    logger.log("Running send all emails ...");
     var results = await sql.getAllUnsentEmails();
-    logger.log("Found ${results.rows.length} emails to send");
     for (var i in results.rows) {
-      sendEmailHandler(i.typedAssoc()['id']!);
+      var resp = await sendEmailHandler(i.typedAssoc()['id']!);
+      if (resp.statusCode != 200) {
+        return false;
+      }
     }
-    logger.log("Finished sending all unsent emails");
+    return true;
   } catch (error, stacktrace) {
     logger.error(error.toString(), stacktrace: stacktrace.toString());
-    print(error);
-    print(stacktrace);
+    print("ERROR = $error");
+    print("STACKTRACE = $stacktrace");
+    return false;
   }
 }

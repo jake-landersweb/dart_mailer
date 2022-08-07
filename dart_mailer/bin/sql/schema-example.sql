@@ -24,8 +24,12 @@ CREATE TABLE IF NOT EXISTS tbl(
     sendDate BIGINT,
     salt MEDIUMTEXT NOT NULL,
     sendName VARCHAR(255),
-    tags MEDIUMTEXT,
+    tags VARCHAR(255),
 ) ENGINE=INNODB;
+
+CREATE INDEX sentStatus on mailer (sentStatus);
+CREATE INDEX sendDate on mailer (sendDate);
+CREATE INDEX tags on mailer (tags);
 
 GRANT ALL PRIVILEGES ON mailer.* TO 'user'@'%' WITH GRANT OPTION;
 
