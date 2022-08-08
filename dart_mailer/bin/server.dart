@@ -66,10 +66,12 @@ void main(List<String> args) async {
 
   // run a function to send the emails every minute
   while (true) {
+    await Future.delayed(const Duration(seconds: 60));
     var response = await routes.sendAllUnsentEmails();
     if (!response) {
       await routes.sendAltertEmail();
+    } else {
+      logger.log("Successfully connected to database");
     }
-    await Future.delayed(const Duration(minutes: 1));
   }
 }

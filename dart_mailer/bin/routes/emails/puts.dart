@@ -50,7 +50,12 @@ Future<Response> updateEmail(Request request) async {
     cleanList("bcc");
 
     // send the actual update request
-    String resp = await sql.updateEmail(id: id!, body: body);
+    String? resp = await sql.updateEmail(id: id!, body: body);
+
+    if (resp == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
 
     if (resp.isNotEmpty) {
       logger.error(resp);
@@ -79,6 +84,11 @@ Future<Response> getEmailsFiltered(Request request) async {
     }
 
     var results = await sql.getFilteredBody(inputBody);
+
+    if (results == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
 
     return response.success(
       "Successfully found filtered emails",

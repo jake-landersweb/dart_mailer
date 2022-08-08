@@ -8,6 +8,11 @@ Future<Response> getEmails(Request request) async {
   try {
     var results = await sql.getEmails();
 
+    if (results == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
+
     return response.success(
       "Successfully found email objects",
       object: results.rows.map((e) => e.typedAssoc()).toList(),
@@ -24,6 +29,11 @@ Future<Response> getEmail(Request request) async {
     final id = request.params['id'];
 
     var results = await sql.getEmail(id: id!);
+
+    if (results == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
 
     return response.success(
       "Successfully found email objects",
@@ -46,6 +56,11 @@ Future<Response> getEmailsSentBy(Request request) async {
 
     var results = await sql.getEmailsSentByUser(email: email);
 
+    if (results == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
+
     return response.success(
       "Successfully found email objects sent by email: $email",
       object: results.rows.map((e) => e.typedAssoc()).toList(),
@@ -67,6 +82,11 @@ Future<Response> getEmailsReceivedBy(Request request) async {
 
     var results = await sql.getEmailsRecievedByUser(email: email);
 
+    if (results == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
+
     return response.success(
       "Successfully found emails recieved by: $email",
       object: results.rows.map((e) => e.typedAssoc()).toList(),
@@ -87,6 +107,11 @@ Future<Response> getEmailsTaggedIn(Request request) async {
     }
 
     var results = await sql.getEmailsTaggedUser(email: email);
+
+    if (results == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
 
     return response.success(
       "Successfully found emails that tagged: $email",

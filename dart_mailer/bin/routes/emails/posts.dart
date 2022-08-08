@@ -44,7 +44,12 @@ Future<Response> createEmail(Request request) async {
     }
 
     // create the mysql connection
-    MySQLConnection connection = await mysql.createConnection();
+    MySQLConnection? connection = await mysql.createConnection();
+
+    if (connection == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
 
     // make sure this id does not exist
     // var results = await connection.execute(
@@ -87,6 +92,11 @@ Future<Response> sendEmail(Request request) async {
 Future<Response> sendEmailHandler(String id) async {
   try {
     final results = await sql.getEmail(id: id);
+
+    if (results == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
 
     if (results.rows.isEmpty) {
       return response.notFound("Email with id $id not found");
@@ -136,11 +146,11 @@ Future<Response> emailHandler(MailObject mailObject) async {
   try {
     await send(message, smtpServer);
     // update the mailobject to respect send
-    String updateResp = await sql.updateEmail(id: mailObject.id, body: {
+    String? updateResp = await sql.updateEmail(id: mailObject.id, body: {
       "sentDate": utils.getEpochDate(),
       "sentStatus": 1,
     });
-    if (updateResp.isEmpty) {
+    if (updateResp?.isEmpty ?? false) {
       return response.success("Successfully sent email: ${mailObject.id}");
     } else {
       return response.internalError(
@@ -158,6 +168,9 @@ Future<Response> emailHandler(MailObject mailObject) async {
 Future<bool> sendAllUnsentEmails() async {
   try {
     var results = await sql.getAllUnsentEmails();
+    if (results == null) {
+      return false;
+    }
     for (var i in results.rows) {
       var resp = await sendEmailHandler(i.typedAssoc()['id']!);
       if (resp.statusCode != 200) {

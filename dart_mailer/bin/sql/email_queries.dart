@@ -4,12 +4,15 @@ import 'root.dart' as sql;
 import '../lib/envs.dart' as env;
 import '../lib/utils.dart' as utils;
 
-Future<IResultSet> dyn({
+Future<IResultSet?> dyn({
   required String column,
   required String opp,
   required String value,
 }) async {
-  MySQLConnection connection = await sql.createConnection();
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
   var results = await connection.execute(
     "SELECT * FROM ${env.MAILTABLE} WHERE $column $opp :val",
     {"val": value},
@@ -18,15 +21,21 @@ Future<IResultSet> dyn({
   return results;
 }
 
-Future<IResultSet> getEmails() async {
-  MySQLConnection connection = await sql.createConnection();
+Future<IResultSet?> getEmails() async {
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
   var results = await connection.execute("SELECT * FROM ${env.MAILTABLE}");
   connection.close();
   return results;
 }
 
-Future<IResultSet> getEmail({required String id}) async {
-  MySQLConnection connection = await sql.createConnection();
+Future<IResultSet?> getEmail({required String id}) async {
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
   var results = await connection.execute(
     "SELECT * FROM ${env.MAILTABLE} WHERE id = :id",
     {"id": id},
@@ -35,8 +44,11 @@ Future<IResultSet> getEmail({required String id}) async {
   return results;
 }
 
-Future<IResultSet> getEmailsSentByUser({required String email}) async {
-  MySQLConnection connection = await sql.createConnection();
+Future<IResultSet?> getEmailsSentByUser({required String email}) async {
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
   var results = await connection.execute(
     "SELECT * FROM ${env.MAILTABLE} WHERE username = :username",
     {"username": email},
@@ -45,16 +57,22 @@ Future<IResultSet> getEmailsSentByUser({required String email}) async {
   return results;
 }
 
-Future<IResultSet> getEmailsRecievedByUser({required String email}) async {
-  MySQLConnection connection = await sql.createConnection();
+Future<IResultSet?> getEmailsRecievedByUser({required String email}) async {
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
   var results = await connection.execute(
     "SELECT * FROM ${env.MAILTABLE} WHERE recipient LIKE '%$email%'",
   );
   return results;
 }
 
-Future<IResultSet> getEmailsTaggedUser({required String email}) async {
-  MySQLConnection connection = await sql.createConnection();
+Future<IResultSet?> getEmailsTaggedUser({required String email}) async {
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
   var results = await connection.execute(
     "SELECT * FROM ${env.MAILTABLE} WHERE cc LIKE '%$email%' OR bcc LIKE '%$email%'",
   );
@@ -62,7 +80,7 @@ Future<IResultSet> getEmailsTaggedUser({required String email}) async {
   return results;
 }
 
-Future<String> updateEmail({
+Future<String?> updateEmail({
   required String id,
   required Map<String, dynamic> body,
 }) async {
@@ -77,7 +95,10 @@ Future<String> updateEmail({
       }
     }
 
-    MySQLConnection connection = await sql.createConnection();
+    MySQLConnection? connection = await sql.createConnection();
+    if (connection == null) {
+      return null;
+    }
     await connection.execute(
       "UPDATE ${env.MAILTABLE} SET $queryString WHERE id = '$id'",
       body,
@@ -89,8 +110,11 @@ Future<String> updateEmail({
   }
 }
 
-Future<IResultSet> getAllUnsentEmails() async {
-  MySQLConnection connection = await sql.createConnection();
+Future<IResultSet?> getAllUnsentEmails() async {
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
   var results = await connection.execute(
     "SELECT id FROM ${env.MAILTABLE} WHERE sentStatus != :sentStatus AND sendDate < :sendDate",
     {
@@ -102,7 +126,7 @@ Future<IResultSet> getAllUnsentEmails() async {
   return results;
 }
 
-Future<IResultSet> getFilteredBody(InputBody body) async {
+Future<IResultSet?> getFilteredBody(InputBody body) async {
   // compose return values
   String selects = "";
   if (body.returnValues.isEmpty) {
@@ -132,7 +156,10 @@ Future<IResultSet> getFilteredBody(InputBody body) async {
       }
     }
   }
-  MySQLConnection connection = await sql.createConnection();
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
   var results = await connection.execute(
     "SELECT $selects FROM ${env.MAILTABLE} $filters",
   );
