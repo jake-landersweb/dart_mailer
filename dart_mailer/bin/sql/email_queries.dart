@@ -132,6 +132,8 @@ Future<IResultSet?> getFilteredBody(InputBody body) async {
   String selects = "";
   if (body.returnValues.isEmpty) {
     selects = "*";
+  } else if (body.returnValues.length == 1 && body.returnValues[0] == "COUNT") {
+    selects = "COUNT(*)";
   } else {
     for (int i = 0; i < body.returnValues.length; i++) {
       if (i == 0) {
