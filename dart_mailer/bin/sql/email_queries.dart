@@ -158,11 +158,12 @@ Future<IResultSet?> getFilteredBody(InputBody body) async {
     }
   }
 
-  String limits = "";
+  String queryString =
+      "SELECT $selects FROM ${env.MAILTABLE} $filters ORDER BY id DESC";
 
   // if limit and page size are specified
   if (body.pageSize != null) {
-    limits =
+    queryString +=
         " LIMIT ${(((body.page ?? 1) - 1) * body.pageSize!)},${body.pageSize!}";
   }
 
@@ -170,9 +171,7 @@ Future<IResultSet?> getFilteredBody(InputBody body) async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(
-    "SELECT $selects FROM ${env.MAILTABLE} ORDER BY id DESC $filters$limits",
-  );
+  var results = await connection.execute(queryString);
   connection.close();
   return results;
 }
