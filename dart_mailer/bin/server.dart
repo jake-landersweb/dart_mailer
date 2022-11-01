@@ -9,6 +9,7 @@ import 'routes/root.dart' as routes;
 import 'lib/utils.dart' as utils;
 import 'lib/logger.dart' as logger;
 import 'lib/auth.dart' as auth;
+import 'sql/root.dart';
 
 // Configure routes.
 final _router = Router()

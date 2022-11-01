@@ -116,10 +116,11 @@ Future<IResultSet?> getAllUnsentEmails() async {
     return null;
   }
   var results = await connection.execute(
-    "SELECT id FROM ${env.MAILTABLE} WHERE sentStatus != :sentStatus AND sendDate < :sendDate",
+    "SELECT id FROM ${env.MAILTABLE} WHERE sentStatus != :sentStatus AND sendDate < :sendDate AND (retryCount < :retryCount OR retryCount IS NULL)",
     {
       "sentStatus": 1,
       "sendDate": utils.getEpochDate(),
+      "retryCount": 4,
     },
   );
   connection.close();
@@ -156,12 +157,21 @@ Future<IResultSet?> getFilteredBody(InputBody body) async {
       }
     }
   }
+
+  String limits = "";
+
+  // if limit and page size are specified
+  if (body.pageSize != null) {
+    limits =
+        " LIMIT ${(((body.page ?? 1) - 1) * body.pageSize!)},${body.pageSize!}";
+  }
+
   MySQLConnection? connection = await sql.createConnection();
   if (connection == null) {
     return null;
   }
   var results = await connection.execute(
-    "SELECT $selects FROM ${env.MAILTABLE} $filters",
+    "SELECT $selects FROM ${env.MAILTABLE} ORDER BY id DESC $filters$limits",
   );
   connection.close();
   return results;

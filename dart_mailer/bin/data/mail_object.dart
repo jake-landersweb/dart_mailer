@@ -20,6 +20,7 @@ class MailObject {
   late int sendDate;
   String? sendName;
   String? tags;
+  late int retryCount;
 
   MailObject({
     required this.subject,
@@ -34,6 +35,7 @@ class MailObject {
     int? sendDate,
     this.sendName,
     this.tags,
+    this.retryCount = 0,
   }) {
     // compose id with date
     id = "m-${utils.getEpochDate()}-${Uuid().v4()}";
@@ -69,6 +71,7 @@ class MailObject {
     sendDate = json['sendDate'];
     sendName = json['sendName'];
     tags = json['tags'];
+    retryCount = json['retryCount'] ?? 0;
   }
 
   Map<String, dynamic> toMap() {
@@ -90,6 +93,7 @@ class MailObject {
       "sendDate": sendDate,
       "sendName": sendName,
       "tags": tags,
+      "retryCount": retryCount,
     };
   }
 }

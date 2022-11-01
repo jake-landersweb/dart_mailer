@@ -160,6 +160,7 @@ Future<Response> emailHandler(MailObject mailObject) async {
     // update the mailobject if it failed to send
     await sql.updateEmail(id: mailObject.id, body: {
       "sentStatus": -1,
+      "retryCount": mailObject.retryCount += 1,
     });
     return response.badGateway(e.message);
   }

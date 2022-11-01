@@ -1,10 +1,14 @@
 class InputBody {
   late List<String> returnValues;
   late List<FilterObject> filters;
+  int? pageSize;
+  int? page;
 
   InputBody({
     required this.returnValues,
     required this.filters,
+    this.pageSize,
+    this.page,
   });
 
   InputBody.fromJson(dynamic json) {
@@ -16,6 +20,8 @@ class InputBody {
     for (var i in json['filters']) {
       filters.add(FilterObject.fromJson(i));
     }
+    pageSize = json['pageSize'];
+    page = json['page'];
   }
 
   bool isValid() {
