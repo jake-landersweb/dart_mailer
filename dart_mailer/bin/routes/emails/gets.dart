@@ -123,3 +123,22 @@ Future<Response> getEmailsTaggedIn(Request request) async {
         "There was an internal error getting the mail objects filtered by email");
   }
 }
+
+Future<Response> deleteEmail(Request request) async {
+  try {
+    final id = request.params['id'];
+
+    var results = await sql.deleteEmail(id: id!);
+
+    if (results == null) {
+      return response
+          .internalError("There was an internal error with your request");
+    }
+
+    return response.success("Successfully deleted email");
+  } catch (error, stacktrace) {
+    logger.error(error.toString(), stacktrace: stacktrace.toString());
+    return response
+        .internalError("There was an internal error deleteing the email");
+  }
+}

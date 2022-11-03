@@ -177,3 +177,16 @@ Future<IResultSet?> getFilteredBody(InputBody body) async {
   connection.close();
   return results;
 }
+
+Future<IResultSet?> deleteEmail({required String id}) async {
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
+  var results = await connection.execute(
+    "DELETE FROM ${env.MAILTABLE} WHERE id = :id",
+    {"id": id},
+  );
+  connection.close();
+  return results;
+}
