@@ -16,8 +16,11 @@ import 'package:shelf_router/shelf_router.dart';
 
 Future<Response> createEmail(Request request) async {
   try {
+    logger.info("CREATE EMAIL");
     final rawData = await request.readAsString();
     final body = jsonDecode(rawData);
+    logger.info("Raw body: $rawData");
+    logger.info(request.toString());
 
     // try and convert the body to json
     late MailObject mailObject;
@@ -170,11 +173,13 @@ Future<bool> sendAllUnsentEmails() async {
   try {
     var results = await sql.getAllUnsentEmails();
     if (results == null) {
+      logger.error("failed to get the sql unsent emails");
       return false;
     }
     for (var i in results.rows) {
       var resp = await sendEmailHandler(i.typedAssoc()['id']!);
       if (resp.statusCode != 200) {
+        logger.error(resp.toString());
         return false;
       }
     }
