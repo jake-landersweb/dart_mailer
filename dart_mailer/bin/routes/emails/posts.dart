@@ -179,7 +179,12 @@ Future<bool> sendAllUnsentEmails() async {
     for (var i in results.rows) {
       var resp = await sendEmailHandler(i.typedAssoc()['id']!);
       if (resp.statusCode != 200) {
-        logger.error(resp.toString());
+        logger.error("failed to send the email");
+        print({
+          "statusCode": resp.statusCode,
+          "headers": resp.headers,
+          "body": await resp.readAsString()
+        });
         return false;
       }
     }
