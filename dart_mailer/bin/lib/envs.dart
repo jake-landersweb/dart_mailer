@@ -11,10 +11,9 @@ String MYSQLDB = Platform.environment['MYSQLDB']!;
 String MAILTABLE = Platform.environment['MAILTABLE']!;
 
 String HOSTNAME = Platform.environment['HOSTNAME']!;
-int HOSTPORT = int.tryParse(Platform.environment['HOSTPORT']!) ?? 8080;
+int HOSTPORT = int.tryParse(Platform.environment['HOSTPORT']!) ?? 8000;
 
 String APIKEY = Platform.environment['APIKEY']!;
-String LOGGERPATH = Platform.environment['LOGGERPATH']!;
 
 String ENCRYPTKEY = Platform.environment['ENCRYPTKEY']!;
 

@@ -14,9 +14,14 @@ bool isAuthenticated(Map<String, dynamic> headers) {
   }
 }
 
+const _publicPaths = ['/health'];
+
 Middleware middleware() => (innerHandler) {
       return (request) {
         return Future.sync(() => innerHandler(request)).then((r) {
+          if (_publicPaths.contains(request.url.path.isEmpty ? '/' : '/${request.url.path}')) {
+            return r;
+          }
           if (!isAuthenticated(request.headers)) {
             return response.auth();
           }

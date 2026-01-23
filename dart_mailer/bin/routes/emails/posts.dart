@@ -1,18 +1,19 @@
 import 'dart:convert';
 
+import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 import 'package:mysql_client/mysql_client.dart';
 import 'package:shelf/shelf.dart';
-import '../../data/mail_object.dart';
-import '../../sql/create_conn.dart' as mysql;
-import '../../lib/response.dart' as response;
-import '../../lib/logger.dart' as logger;
-import '../../lib/utils.dart' as utils;
-import '../../lib/envs.dart' as env;
-import '../../lib/encryption.dart' as encrypt;
-import '../../sql/root.dart' as sql;
-import 'package:mailer/mailer.dart';
 import 'package:shelf_router/shelf_router.dart';
+
+import '../../data/mail_object.dart';
+import '../../lib/encryption.dart' as encrypt;
+import '../../lib/envs.dart' as env;
+import '../../lib/logger.dart' as logger;
+import '../../lib/response.dart' as response;
+import '../../lib/utils.dart' as utils;
+import '../../sql/create_conn.dart' as mysql;
+import '../../sql/root.dart' as sql;
 
 Future<Response> createEmail(Request request) async {
   try {
@@ -54,23 +55,17 @@ Future<Response> createEmail(Request request) async {
           .internalError("There was an internal error with your request");
     }
 
-    // make sure this id does not exist
-    // var results = await connection.execute(
-    //     "SELECT * FROM ${env.MAILTABLE} WHERE id = \"${mailObject.id}\"");
-    // if (results.numOfRows > 0) {
-    //   logger.error("Duplicate records found with id value in createMailObject");
-    //   return response.conflict("id");
-    // }
+    try {
+      await connection.execute(
+        "INSERT INTO ${env.MAILTABLE} (id, subject, body, recipient, cc, bcc, host, port, username, password, salt, created, sentStatus, sendDate, sendName, tags) VALUES (:id, :subject, :body, :recipient, :cc, :bcc, :host, :port, :username, :password, :salt, :created, :sentStatus, :sendDate, :sendName, :tags)",
+        mailObject.toMap(),
+      );
 
-    await connection.execute(
-      "INSERT INTO ${env.MAILTABLE} (id, subject, body, recipient, cc, bcc, host, port, username, password, salt, created, sentStatus, sendDate, sendName, tags) VALUES (:id, :subject, :body, :recipient, :cc, :bcc, :host, :port, :username, :password, :salt, :created, :sentStatus, :sendDate, :sendName, :tags)",
-      mailObject.toMap(),
-    );
-
-    connection.close();
-
-    return response
-        .success("Successfully created mail object with id: ${mailObject.id}");
+      return response
+          .success("Successfully created mail object with id: ${mailObject.id}");
+    } finally {
+      await connection.close();
+    }
   } catch (error, stacktrace) {
     logger.error(error.toString(), stacktrace: stacktrace.toString());
     return response

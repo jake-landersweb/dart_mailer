@@ -2,30 +2,6 @@ import 'dart:io';
 import 'package:shelf/shelf.dart';
 
 import 'utils.dart' as utils;
-import 'envs.dart' as env;
-
-// create a new log file for each instance this application runs
-// File _loggerFile = File('../../logs/${utils.getEpochDate()}.txt');
-
-late File _loggerFile;
-
-void createFile() {
-  String filename = '${env.LOGGERPATH}${utils.getIsoDate()}.txt';
-  File(filename).createSync(recursive: true);
-  _loggerFile = File(filename);
-  String val =
-      "${utils.getIsoDate()} | STARTING MAILER SERVER FOR HOST: ${env.HOSTNAME} PORT: ${env.HOSTPORT}'\n";
-  _loggerFile.writeAsStringSync(
-    val,
-    mode: FileMode.append,
-  );
-  _loggerFile.writeAsStringSync(
-    "${"-" * 50}\n",
-    mode: FileMode.append,
-  );
-  stdout.write("LOGGER FILE CREATED AT: '${_loggerFile.absolute}'\n");
-  stdout.write(val);
-}
 
 void log(String message, {String? stacktrace}) {
   _write("LOG     ", message, stacktrace: stacktrace);
@@ -61,7 +37,6 @@ void _write(String type, String message, {String? stacktrace}) {
     line += "$stacktrace | ";
   }
   line += "$message\n";
-  _loggerFile.writeAsStringSync(line, mode: FileMode.append);
   stdout.write(line);
 }
 

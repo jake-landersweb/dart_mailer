@@ -1,15 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
-import 'lib/envs.dart' as env;
-import 'routes/root.dart' as routes;
-import 'lib/utils.dart' as utils;
-import 'lib/logger.dart' as logger;
+
 import 'lib/auth.dart' as auth;
-import 'sql/root.dart';
+import 'lib/envs.dart' as env;
+import 'lib/logger.dart' as logger;
+import 'lib/utils.dart' as utils;
+import 'routes/health.dart' as health;
+import 'routes/root.dart' as routes;
 
 // Configure routes.
 final _router = Router()
@@ -23,6 +25,7 @@ final _router = Router()
   ..get("/emailsSetBy/<email>", routes.getEmailsSentBy)
   ..get("/emailsReceivedBy/<email>", routes.getEmailsReceivedBy)
   ..get("/emailsTaggedIn/<email>", routes.getEmailsTaggedIn)
+  ..get("/health", health.healthCheck)
   ..get("/", _rootHandler);
 
 Future<Response> _rootHandler(Request req) async {
@@ -32,7 +35,10 @@ Future<Response> _rootHandler(Request req) async {
 void main(List<String> args) async {
   print("Starting MAILER server at: ${utils.getIsoDate()}");
 
-  logger.createFile();
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+  });
 
   var required = [
     "MYSQLHOST",
@@ -44,7 +50,6 @@ void main(List<String> args) async {
     "HOSTNAME",
     "HOSTPORT",
     "APIKEY",
-    "LOGGERPATH",
     "ENCRYPTKEY",
     "ISSECURE"
   ];

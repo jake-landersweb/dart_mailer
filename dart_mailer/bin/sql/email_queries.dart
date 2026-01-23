@@ -13,12 +13,15 @@ Future<IResultSet?> dyn({
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(
-    "SELECT * FROM ${env.MAILTABLE} WHERE $column $opp :val",
-    {"val": value},
-  );
-  connection.close();
-  return results;
+  try {
+    var results = await connection.execute(
+      "SELECT * FROM ${env.MAILTABLE} WHERE $column $opp :val",
+      {"val": value},
+    );
+    return results;
+  } finally {
+    await connection.close();
+  }
 }
 
 Future<IResultSet?> getEmails() async {
@@ -26,9 +29,12 @@ Future<IResultSet?> getEmails() async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute("SELECT * FROM ${env.MAILTABLE}");
-  connection.close();
-  return results;
+  try {
+    var results = await connection.execute("SELECT * FROM ${env.MAILTABLE}");
+    return results;
+  } finally {
+    await connection.close();
+  }
 }
 
 Future<IResultSet?> getEmail({required String id}) async {
@@ -36,12 +42,15 @@ Future<IResultSet?> getEmail({required String id}) async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(
-    "SELECT * FROM ${env.MAILTABLE} WHERE id = :id",
-    {"id": id},
-  );
-  connection.close();
-  return results;
+  try {
+    var results = await connection.execute(
+      "SELECT * FROM ${env.MAILTABLE} WHERE id = :id",
+      {"id": id},
+    );
+    return results;
+  } finally {
+    await connection.close();
+  }
 }
 
 Future<IResultSet?> getEmailsSentByUser({required String email}) async {
@@ -49,12 +58,15 @@ Future<IResultSet?> getEmailsSentByUser({required String email}) async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(
-    "SELECT * FROM ${env.MAILTABLE} WHERE username = :username",
-    {"username": email},
-  );
-  connection.close();
-  return results;
+  try {
+    var results = await connection.execute(
+      "SELECT * FROM ${env.MAILTABLE} WHERE username = :username",
+      {"username": email},
+    );
+    return results;
+  } finally {
+    await connection.close();
+  }
 }
 
 Future<IResultSet?> getEmailsRecievedByUser({required String email}) async {
@@ -62,10 +74,14 @@ Future<IResultSet?> getEmailsRecievedByUser({required String email}) async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(
-    "SELECT * FROM ${env.MAILTABLE} WHERE recipient LIKE '%$email%'",
-  );
-  return results;
+  try {
+    var results = await connection.execute(
+      "SELECT * FROM ${env.MAILTABLE} WHERE recipient LIKE '%$email%'",
+    );
+    return results;
+  } finally {
+    await connection.close();
+  }
 }
 
 Future<IResultSet?> getEmailsTaggedUser({required String email}) async {
@@ -73,40 +89,43 @@ Future<IResultSet?> getEmailsTaggedUser({required String email}) async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(
-    "SELECT * FROM ${env.MAILTABLE} WHERE cc LIKE '%$email%' OR bcc LIKE '%$email%'",
-  );
-  connection.close();
-  return results;
+  try {
+    var results = await connection.execute(
+      "SELECT * FROM ${env.MAILTABLE} WHERE cc LIKE '%$email%' OR bcc LIKE '%$email%'",
+    );
+    return results;
+  } finally {
+    await connection.close();
+  }
 }
 
 Future<String?> updateEmail({
   required String id,
   required Map<String, dynamic> body,
 }) async {
-  try {
-    String queryString = "";
-    // loop through objects and create dynamic update string
-    for (var obj in body.entries) {
-      if (obj.key == body.entries.first.key) {
-        queryString += "${obj.key} = :${obj.key}";
-      } else {
-        queryString += ", ${obj.key} = :${obj.key}";
-      }
+  String queryString = "";
+  for (var obj in body.entries) {
+    if (obj.key == body.entries.first.key) {
+      queryString += "${obj.key} = :${obj.key}";
+    } else {
+      queryString += ", ${obj.key} = :${obj.key}";
     }
+  }
 
-    MySQLConnection? connection = await sql.createConnection();
-    if (connection == null) {
-      return null;
-    }
+  MySQLConnection? connection = await sql.createConnection();
+  if (connection == null) {
+    return null;
+  }
+  try {
     await connection.execute(
       "UPDATE ${env.MAILTABLE} SET $queryString WHERE id = '$id'",
       body,
     );
-    connection.close();
     return "";
   } catch (error, stacktrace) {
     return "$error $stacktrace";
+  } finally {
+    await connection.close();
   }
 }
 
@@ -115,16 +134,19 @@ Future<IResultSet?> getAllUnsentEmails() async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(
-    "SELECT id FROM ${env.MAILTABLE} WHERE sentStatus != :sentStatus AND sendDate < :sendDate AND (retryCount < :retryCount OR retryCount IS NULL)",
-    {
-      "sentStatus": 1,
-      "sendDate": utils.getEpochDate(),
-      "retryCount": 4,
-    },
-  );
-  connection.close();
-  return results;
+  try {
+    var results = await connection.execute(
+      "SELECT id FROM ${env.MAILTABLE} WHERE sentStatus != :sentStatus AND sendDate < :sendDate AND (retryCount < :retryCount OR retryCount IS NULL)",
+      {
+        "sentStatus": 1,
+        "sendDate": utils.getEpochDate(),
+        "retryCount": 4,
+      },
+    );
+    return results;
+  } finally {
+    await connection.close();
+  }
 }
 
 Future<IResultSet?> getFilteredBody(InputBody body) async {
@@ -173,9 +195,12 @@ Future<IResultSet?> getFilteredBody(InputBody body) async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(queryString);
-  connection.close();
-  return results;
+  try {
+    var results = await connection.execute(queryString);
+    return results;
+  } finally {
+    await connection.close();
+  }
 }
 
 Future<IResultSet?> deleteEmail({required String id}) async {
@@ -183,10 +208,13 @@ Future<IResultSet?> deleteEmail({required String id}) async {
   if (connection == null) {
     return null;
   }
-  var results = await connection.execute(
-    "DELETE FROM ${env.MAILTABLE} WHERE id = :id",
-    {"id": id},
-  );
-  connection.close();
-  return results;
+  try {
+    var results = await connection.execute(
+      "DELETE FROM ${env.MAILTABLE} WHERE id = :id",
+      {"id": id},
+    );
+    return results;
+  } finally {
+    await connection.close();
+  }
 }

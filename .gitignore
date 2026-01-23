@@ -1,4 +1,4 @@
 mysql/
-docker-compose.yml
-logs/
 schema.sql
+.env
+.claude

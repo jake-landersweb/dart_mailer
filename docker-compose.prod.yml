@@ -1,0 +1,27 @@
+services:
+  dart_mailer_app:
+    container_name: dart_mailer_app
+    build:
+      context: ./dart_mailer/
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - MYSQLHOST=${PROD_MYSQLHOST}
+      - MYSQLPORT=${PROD_MYSQLPORT}
+      - MYSQLUSER=${PROD_MYSQLUSER}
+      - MYSQLPASS=${PROD_MYSQLPASS}
+      - MYSQLDB=${PROD_MYSQLDB}
+      - MAILTABLE=${MAILTABLE}
+      - HOSTNAME=${HOSTNAME}
+      - HOSTPORT=${HOSTPORT}
+      - APIKEY=${APIKEY}
+      - ENCRYPTKEY=${ENCRYPTKEY}
+      - ISSECURE=${ISSECURE}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:$HOSTPORT/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped

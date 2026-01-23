@@ -1,0 +1,48 @@
+services:
+  dart_mailer_db:
+    container_name: dart_mailer_db
+    image: mariadb
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - ./schema.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  dart_mailer_app:
+    container_name: dart_mailer_app
+    build:
+      context: ./dart_mailer/
+      dockerfile: Dockerfile
+    ports:
+      - 8000:8000
+    environment:
+      - MYSQLHOST=${MYSQLHOST}
+      - MYSQLPORT=${MYSQLPORT}
+      - MYSQLUSER=${MYSQLUSER}
+      - MYSQLPASS=${MYSQLPASS}
+      - MYSQLDB=${MYSQLDB}
+      - MAILTABLE=${MAILTABLE}
+      - HOSTNAME=${HOSTNAME}
+      - HOSTPORT=${HOSTPORT}
+      - APIKEY=${APIKEY}
+      - ENCRYPTKEY=${ENCRYPTKEY}
+      - ISSECURE=${ISSECURE}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:$HOSTPORT/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    depends_on:
+      dart_mailer_db:
+        condition: service_healthy
+    restart: unless-stopped
