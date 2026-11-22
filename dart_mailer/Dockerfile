@@ -2,16 +2,17 @@ FROM dart:3.13.7@sha256:854f3c50b1cbd4a5a54c9fa67d4f5b6702ac49b4a26d21a80e7712a7
 
 # Resolve app dependencies.
 WORKDIR /app
-COPY pubspec.* ./
+COPY pubspec.yaml pubspec.lock ./
 RUN dart pub get --enforce-lockfile
 
 # Copy app source code (except anything in .dockerignore) and AOT compile app.
-COPY . .
+COPY bin/ bin/
 RUN dart compile exe bin/server.dart -o bin/server
 
 # Build minimal serving image from AOT-compiled `/server`
 # and the pre-built AOT-runtime in the `/runtime/` directory of the base image.
 FROM alpine:3.24.4@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf
+LABEL org.opencontainers.image.source="https://github.com/jake-landersweb/dart_mailer"
 RUN apk add --no-cache curl
 COPY --from=build /runtime/ /
 COPY --from=build /app/bin/server /app/bin/

@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
-      IMAGE: ghcr.io/jake-landersweb/dart-mailer
+      IMAGE: ghcr.io/jake-landersweb/dart-mailer-runtime
       VERSION: '0.0.3'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -30,7 +30,7 @@ jobs:
           docker run --rm -v "$PWD:/repo:ro" "$gitleaks" dir --redact=100 /repo
           for arch in amd64 arm64; do
             image="$IMAGE:$VERSION-$arch"
-            docker buildx build --load --platform "linux/$arch" --tag "$image" dart_mailer
+            docker buildx build --load --provenance=false --platform "linux/$arch" --tag "$image" dart_mailer
             docker save "$image" -o "$RUNNER_TEMP/mailer-$arch.tar"
             docker run --rm -v "$RUNNER_TEMP:/scan:ro" "$trivy" image \
               --scanners secret --exit-code 1 --input "/scan/mailer-$arch.tar"
@@ -55,4 +55,6 @@ jobs:
           done
           docker buildx imagetools create --tag "$IMAGE:$VERSION" \
             "$IMAGE:$VERSION-amd64" "$IMAGE:$VERSION-arm64"
+          docker buildx imagetools inspect --raw "$IMAGE:$VERSION" |
+            jq -e '[.manifests[].platform | "\(.os)/\(.architecture)"] | sort == ["linux/amd64", "linux/arm64"]'
           docker buildx imagetools inspect "$IMAGE:$VERSION"
