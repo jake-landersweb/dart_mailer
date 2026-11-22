@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 35
     env:
-      IMAGE: ghcr.io/jake-landersweb/dart-mailer-runtime
+      IMAGE: ghcr.io/jake-landersweb/dart-mailer
       VERSION: '0.0.3'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
