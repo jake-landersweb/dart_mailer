@@ -18,3 +18,6 @@ String APIKEY = Platform.environment['APIKEY']!;
 String ENCRYPTKEY = Platform.environment['ENCRYPTKEY']!;
 
 bool ISSECURE = Platform.environment['ISSECURE'] == "true";
+
+final String? ALERT_SMTP_USERNAME = Platform.environment['ALERT_SMTP_USERNAME'];
+final String? ALERT_SMTP_PASSWORD = Platform.environment['ALERT_SMTP_PASSWORD'];

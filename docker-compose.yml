@@ -36,6 +36,8 @@ services:
       - APIKEY=${APIKEY}
       - ENCRYPTKEY=${ENCRYPTKEY}
       - ISSECURE=${ISSECURE}
+      - ALERT_SMTP_USERNAME
+      - ALERT_SMTP_PASSWORD
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:$HOSTPORT/health"]
       interval: 30s

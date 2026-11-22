@@ -1,0 +1,58 @@
+name: Publish mailer image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      IMAGE: ghcr.io/jake-landersweb/dart-mailer
+      VERSION: '0.0.3'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up ARM64 emulation
+        run: |
+          docker run --rm --privileged tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0 --install arm64
+      - name: Build, scan and test both images
+        shell: bash
+        run: |
+          set -euo pipefail
+          trivy=ghcr.io/aquasecurity/trivy@sha256:bcc376de8d77cfe086a917230e818dc9f8528e3c852f7b1aff648949b6258d1c
+          gitleaks=ghcr.io/gitleaks/gitleaks@sha256:691af3c7c5a48b16f187ce3446d5f194838f91238f27270ed36eef6359a574d9
+          docker run --rm -v "$PWD:/repo:ro" "$gitleaks" dir --redact=100 /repo
+          for arch in amd64 arm64; do
+            image="$IMAGE:$VERSION-$arch"
+            docker buildx build --load --platform "linux/$arch" --tag "$image" dart_mailer
+            docker save "$image" -o "$RUNNER_TEMP/mailer-$arch.tar"
+            docker run --rm -v "$RUNNER_TEMP:/scan:ro" "$trivy" image \
+              --scanners secret --exit-code 1 --input "/scan/mailer-$arch.tar"
+            cid=$(docker create --platform "linux/$arch" "$image")
+            docker cp "$cid:/app/bin/server" "$RUNNER_TEMP/mailer-$arch"
+            docker rm "$cid"
+            strings "$RUNNER_TEMP/mailer-$arch" | \
+              docker run -i --rm "$gitleaks" stdin --redact=100
+            rm "$RUNNER_TEMP/mailer-$arch" "$RUNNER_TEMP/mailer-$arch.tar"
+            bash dart_mailer/test/image-smoke.sh "$arch" "$image"
+          done
+      - name: Publish private registry manifests
+        shell: bash
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          trap 'docker logout ghcr.io >/dev/null' EXIT
+          echo "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          for arch in amd64 arm64; do
+            docker push "$IMAGE:$VERSION-$arch"
+          done
+          docker buildx imagetools create --tag "$IMAGE:$VERSION" \
+            "$IMAGE:$VERSION-amd64" "$IMAGE:$VERSION-arm64"
+          docker buildx imagetools inspect "$IMAGE:$VERSION"

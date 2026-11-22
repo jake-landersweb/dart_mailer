@@ -1,14 +1,8 @@
 import 'dart:io';
 import 'package:shelf/shelf.dart';
 
-import 'utils.dart' as utils;
-
 void log(String message, {String? stacktrace}) {
   _write("LOG     ", message, stacktrace: stacktrace);
-}
-
-void req(String message, {String? stacktrace}) {
-  _write("REQUEST ", message, stacktrace: stacktrace);
 }
 
 void debug(String message, {String? stacktrace}) {
@@ -32,28 +26,31 @@ void critical(String message, {String? stacktrace}) {
 }
 
 void _write(String type, String message, {String? stacktrace}) {
-  String line = "${utils.getIsoDate()} | $type | ";
-  if (stacktrace != null) {
-    line += "$stacktrace | ";
+  if (type == 'ERROR   ' || type == 'CRITICAL') {
+    stdout.writeln('MAILER application_error');
   }
-  line += "$message\n";
-  stdout.write(line);
 }
 
+void queueEvent(String event, String id) {
+  if (_queueId.hasMatch(id)) {
+    stdout.writeln('MAILER $event id=$id');
+  }
+}
+
+final _queueId = RegExp(
+  r'^m-[0-9]{13}-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$',
+);
+
 Middleware middleware() => (innerHandler) {
-      return (request) {
-        return Future.sync(() => innerHandler(request)).then((response) async {
-          req(utils.printRequest(request));
-          if (response.statusCode == 200) {
-            log(response.context.toString());
-          } else {
-            error(response.context.toString());
-          }
-          return response;
-        }, onError: (Object err, StackTrace stackTrace) {
-          if (err is HijackException) throw err;
-          error("There was an error: $err");
-          throw err;
-        });
+      return (request) async {
+        final response = await innerHandler(request);
+        if (request.method == 'POST' && request.url.path == 'createEmail') {
+          final userAgent = request.headers['user-agent'] ?? '';
+          final source =
+              userAgent.startsWith('python-requests/') ? 'python-requests' : 'other';
+          stdout.writeln(
+              'MAILER create_email status=${response.statusCode} source=$source');
+        }
+        return response;
       };
     };

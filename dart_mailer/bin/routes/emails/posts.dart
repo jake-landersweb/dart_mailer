@@ -20,8 +20,6 @@ Future<Response> createEmail(Request request) async {
     logger.info("CREATE EMAIL");
     final rawData = await request.readAsString();
     final body = jsonDecode(rawData);
-    logger.info("Raw body: $rawData");
-    logger.info(request.toString());
 
     // try and convert the body to json
     late MailObject mailObject;
@@ -61,6 +59,7 @@ Future<Response> createEmail(Request request) async {
         mailObject.toMap(),
       );
 
+      logger.queueEvent("queue_inserted", mailObject.id);
       return response
           .success("Successfully created mail object with id: ${mailObject.id}");
     } finally {
@@ -142,7 +141,9 @@ Future<Response> emailHandler(MailObject mailObject) async {
   }
 
   try {
+    logger.queueEvent("smtp_attempt", mailObject.id);
     await send(message, smtpServer);
+    logger.queueEvent("smtp_accepted", mailObject.id);
     // update the mailobject to respect send
     String? updateResp = await sql.updateEmail(id: mailObject.id, body: {
       "sentDate": utils.getEpochDate(),
@@ -154,13 +155,16 @@ Future<Response> emailHandler(MailObject mailObject) async {
       return response.internalError(
           "The email was sent, but there was an issue updating the data");
     }
-  } on MailerException catch (e) {
-    // update the mailobject if it failed to send
+  } catch (e) {
+    // MailerException (rejected by the server) and socket/TLS errors
+    // (connection reset, timeouts) both mark the email as failed instead of
+    // escaping and crashing the send loop.
+    logger.error("failed to send email ${mailObject.id}: $e");
     await sql.updateEmail(id: mailObject.id, body: {
       "sentStatus": -1,
       "retryCount": mailObject.retryCount += 1,
     });
-    return response.badGateway(e.message);
+    return response.badGateway(e is MailerException ? e.message : e.toString());
   }
 }
 
@@ -175,11 +179,6 @@ Future<bool> sendAllUnsentEmails() async {
       var resp = await sendEmailHandler(i.typedAssoc()['id']!);
       if (resp.statusCode != 200) {
         logger.error("failed to send the email");
-        print({
-          "statusCode": resp.statusCode,
-          "headers": resp.headers,
-          "body": await resp.readAsString()
-        });
         return false;
       }
     }
@@ -193,6 +192,12 @@ Future<bool> sendAllUnsentEmails() async {
 }
 
 Future<void> sendAltertEmail() async {
+  final username = env.ALERT_SMTP_USERNAME;
+  final password = env.ALERT_SMTP_PASSWORD;
+  if (username == null || username.isEmpty ||
+      password == null || password.isEmpty) {
+    return;
+  }
   try {
     logger.log("SENDING ALERT EMAIL");
     // if there was an error connecting to the database, make sure to catch it and send an alert
@@ -209,8 +214,8 @@ Future<void> sendAltertEmail() async {
       bcc: [],
       host: "mailen2.cloudsector.net",
       port: 587,
-      username: "success@crosschecksports.com",
-      password: "us8EweS*9",
+      username: username,
+      password: password,
       sendDate: 0,
       sendName: "Dart Mailer",
       tags: "admin,error",

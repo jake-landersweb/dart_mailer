@@ -1,5 +1,3 @@
-import 'package:shelf/shelf.dart';
-
 int getEpochDate({DateTime? date}) {
   late int epoch;
   if (date != null) {
@@ -18,10 +16,6 @@ String getIsoDate({DateTime? date}) {
     iso = DateTime.now().toUtc().toIso8601String();
   }
   return iso;
-}
-
-String printRequest(Request request) {
-  return "HTTP${request.protocolVersion}  /${request.url}  ${request.method}  HEADERS: ${request.headers}";
 }
 
 List<String> convertList(List<dynamic> list) {

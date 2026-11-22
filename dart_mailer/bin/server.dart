@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -9,7 +8,6 @@ import 'package:shelf_router/shelf_router.dart';
 import 'lib/auth.dart' as auth;
 import 'lib/envs.dart' as env;
 import 'lib/logger.dart' as logger;
-import 'lib/utils.dart' as utils;
 import 'routes/health.dart' as health;
 import 'routes/root.dart' as routes;
 
@@ -32,14 +30,16 @@ Future<Response> _rootHandler(Request req) async {
   return Response.ok('Hello, World!\n');
 }
 
-void main(List<String> args) async {
-  print("Starting MAILER server at: ${utils.getIsoDate()}");
-
-  Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((LogRecord rec) {
-    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+void main(List<String> args) {
+  // A socket error from the SMTP server (e.g. "Connection reset by peer") can
+  // surface as an uncaught async error and used to kill the whole process.
+  // Log it and keep the server and send loop alive instead.
+  runZonedGuarded(_run, (Object error, StackTrace stack) {
+    logger.error("UNCAUGHT ERROR = $error", stacktrace: stack.toString());
   });
+}
 
+Future<void> _run() async {
   var required = [
     "MYSQLHOST",
     "MYSQLPORT",
@@ -67,18 +67,23 @@ void main(List<String> args) async {
       .addMiddleware(auth.middleware())
       .addHandler(_router);
 
-  final server = await serve(handler, env.HOSTNAME, env.HOSTPORT);
+  await serve(handler, env.HOSTNAME, env.HOSTPORT);
 
-  logger.log("Sever listening on port ${server.port}");
+  stdout.writeln('MAILER ready');
 
   // run a function to send the emails every minute
   while (true) {
     await Future.delayed(const Duration(seconds: 60));
-    var response = await routes.sendAllUnsentEmails();
-    if (!response) {
-      await routes.sendAltertEmail();
-    } else {
-      logger.log("Successfully connected to database");
+    try {
+      var response = await routes.sendAllUnsentEmails();
+      if (!response) {
+        await routes.sendAltertEmail();
+      } else {
+        stdout.writeln('MAILER queue_poll_ok');
+      }
+    } catch (error, stacktrace) {
+      logger.error("ERROR IN send loop = $error",
+          stacktrace: stacktrace.toString());
     }
   }
 }
