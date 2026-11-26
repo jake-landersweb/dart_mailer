@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:http/http.dart';
 import 'package:test/test.dart';
@@ -16,6 +17,11 @@ void main() {
     host = 'http://127.0.0.1:$port';
     await listener.close();
 
+    final random = Random.secure();
+    // Encoding 24 bytes gives the 32 UTF-8 bytes used by the AES key.
+    final encryptionKey =
+        base64Encode(List<int>.generate(24, (_) => random.nextInt(256)));
+
     server = await Process.start('dart', [
       'run',
       'bin/server.dart'
@@ -30,7 +36,7 @@ void main() {
       'MYSQLDB': 'fixture',
       'MAILTABLE': 'fixture',
       'APIKEY': apiKey,
-      'ENCRYPTKEY': 'fixture-encryption-key-123456789',
+      'ENCRYPTKEY': encryptionKey,
       'ALERT_SMTP_USERNAME': '',
       'ALERT_SMTP_PASSWORD': '',
     });
