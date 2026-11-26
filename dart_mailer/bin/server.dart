@@ -75,10 +75,7 @@ Future<void> _run() async {
   while (true) {
     await Future.delayed(const Duration(seconds: 60));
     try {
-      var response = await routes.sendAllUnsentEmails();
-      if (!response) {
-        await routes.sendAltertEmail();
-      } else {
+      if (await routes.sendAllUnsentEmails()) {
         stdout.writeln('MAILER queue_poll_ok');
       }
     } catch (error, stacktrace) {

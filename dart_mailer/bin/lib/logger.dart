@@ -32,10 +32,12 @@ void _write(String type, String message, {String? stacktrace}) {
 }
 
 void queueEvent(String event, String id) {
-  if (_queueId.hasMatch(id)) {
+  if (isQueueId(id)) {
     stdout.writeln('MAILER $event id=$id');
   }
 }
+
+bool isQueueId(String id) => id.length == 52 && _queueId.hasMatch(id);
 
 final _queueId = RegExp(
   r'^m-[0-9]{13}-[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$',

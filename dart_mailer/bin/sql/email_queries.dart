@@ -4,6 +4,8 @@ import 'root.dart' as sql;
 import '../lib/envs.dart' as env;
 import '../lib/utils.dart' as utils;
 
+const maxSendAttempts = 4;
+
 Future<IResultSet?> dyn({
   required String column,
   required String opp,
@@ -140,7 +142,7 @@ Future<IResultSet?> getAllUnsentEmails() async {
       {
         "sentStatus": 1,
         "sendDate": utils.getEpochDate(),
-        "retryCount": 4,
+        "retryCount": maxSendAttempts,
       },
     );
     return results;

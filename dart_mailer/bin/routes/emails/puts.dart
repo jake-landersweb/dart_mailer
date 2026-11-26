@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shelf/shelf.dart';
 import '../../data/input_body.dart';
+import '../../data/recipients.dart';
 import '../../lib/response.dart' as response;
 import '../../lib/logger.dart' as logger;
 import '../../lib/utils.dart' as utils;
@@ -37,11 +38,11 @@ Future<Response> updateEmail(Request request) async {
     // clean lists
     void cleanList(String title) {
       if (body.containsKey(title)) {
-        if (body[title].isEmpty) {
-          body[title] = "";
-        } else {
-          body[title] = utils.convertList(body[title]).join(",");
-        }
+        body[title] = normalizeRecipients(
+          title,
+          utils.convertList(body[title]),
+          required: title == 'recipient',
+        ).join(',');
       }
     }
 
@@ -63,6 +64,8 @@ Future<Response> updateEmail(Request request) async {
     }
 
     return response.success("Successfully updated email object with id: $id");
+  } on FormatException catch (error) {
+    return response.basic(422, error.message);
   } catch (error, stacktrace) {
     logger.error(error.toString(), stacktrace: stacktrace.toString());
     return response
