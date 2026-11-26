@@ -2,7 +2,6 @@ import 'package:mysql_client/mysql_client.dart';
 
 import '../lib/envs.dart' as env;
 import '../lib/logger.dart' as logger;
-import '../routes/root.dart' as routes;
 
 Future<MySQLConnection?> createConnection() async {
   try {
@@ -19,7 +18,6 @@ Future<MySQLConnection?> createConnection() async {
   } catch (error, stacktrace) {
     logger.error(
         "Could not establish connection to mysql. ERROR = $error STACKTRACE = $stacktrace");
-    routes.sendAltertEmail();
     return null;
   }
 }

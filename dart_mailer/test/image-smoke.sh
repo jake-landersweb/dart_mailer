@@ -28,6 +28,15 @@ probe() {
 
 test "$(probe fixture-private-key)" = 403
 test "$(probe "$fixture_key")" = 422
+malformed=$(docker exec "$cid" curl -sS -w '\n%{http_code}' \
+  -H "x-api-key: $fixture_key" \
+  -d '{"subject":"Deletion","body":"Fixture","recipient":["non-mailbox"],"cc":[],"bcc":["admin@example.test"]}' \
+  http://127.0.0.1:8000/createEmail)
+test "${malformed##*$'\n'}" = 422
+grep -Fq 'recipient entry 1 is not an email address' <<<"$malformed"
+test "$(docker exec "$cid" curl -sS -o /dev/null -w '%{http_code}' \
+  -H "x-api-key: $fixture_key" -X PUT -d '{"bcc":["invalid"]}' \
+  http://127.0.0.1:8000/emails/fixture)" = 422
 logs=$(docker logs "$cid" 2>&1)
 grep -Fxq 'MAILER ready' <<<"$logs"
 grep -Fxq 'MAILER create_email status=403 source=python-requests' <<<"$logs"
@@ -40,7 +49,13 @@ filtered=$(docker exec "$cid" /bin/sh /app/bin/log-filter.sh /bin/sh -c '
   echo "HEADERS: fixture-private-key"
   echo "SMTP username=fixture-private-user password=fixture-private-pass" >&2
   echo "MAILER smtp_accepted id=m-1234567890123-00000000-0000-0000-0000-000000000000"
+  echo "MAILER queue_invalid_message id=m-1234567890123-00000000-0000-0000-0000-000000000000"
+  echo "MAILER queue_invalid_message id=fixture-private-key"
+  echo "MAILER alert_accepted"
+  echo "MAILER alert_accepted fixture-private-pass"
 ')
-test "$filtered" = 'MAILER smtp_accepted id=m-1234567890123-00000000-0000-0000-0000-000000000000'
+test "$filtered" = 'MAILER smtp_accepted id=m-1234567890123-00000000-0000-0000-0000-000000000000
+MAILER queue_invalid_message id=m-1234567890123-00000000-0000-0000-0000-000000000000
+MAILER alert_accepted'
 docker stop --time 3 "$cid" >/dev/null
 test "$(docker inspect --format '{{.State.ExitCode}}' "$cid")" != 137
